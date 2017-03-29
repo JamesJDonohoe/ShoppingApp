@@ -22,19 +22,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".textreading.MoneyDisplay"
-            android:screenOrientation="portrait"/>
-
         <activity android:name=".cashdisplay.CashDisplay"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity android:name=".ChangeDisplay.ChangeDisplay"
             android:screenOrientation="portrait">
         </activity>
 
         <activity android:name=".entering.EnterAmountActivity"
             android:screenOrientation="portrait"/>
+
+        <activity android:name=".cashdisplay.ChangeDisplay"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>

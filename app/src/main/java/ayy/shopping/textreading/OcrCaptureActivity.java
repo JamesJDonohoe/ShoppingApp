@@ -27,7 +27,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -47,15 +46,15 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
-import ayy.shopping.*;
+import java.io.IOException;
+import java.util.Locale;
+
+import ayy.shopping.R;
 import ayy.shopping.cashdisplay.CashDisplay;
 import ayy.shopping.entering.EnterAmountActivity;
 import ayy.shopping.textreading.ui.camera.CameraSource;
 import ayy.shopping.textreading.ui.camera.CameraSourcePreview;
 import ayy.shopping.textreading.ui.camera.GraphicOverlay;
-
-import java.io.IOException;
-import java.util.Locale;
 
 /**
  * Activity for the Ocr Detecting app.  This app detects text and displays the value with the
@@ -87,10 +86,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
     // A TextToSpeech engine for speaking a String value.
     private TextToSpeech tts;
 
-    private ImageButton captureBtn;
-
-
-////// Used to pass message to MoneyDisplay
     public final static String EXTRA_MESSAGE = "com.google.android.gms.samples.vision.ocrreader.MESSAGE";
 
     /**
@@ -104,25 +99,16 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay<OcrGraphic>) findViewById(R.id.graphicOverlay);
 
-        captureBtn = (ImageButton)findViewById(R.id.captureBtn);
-        captureBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(OcrCaptureActivity.this, MoneyDisplay.class);
-                startActivity(intent);
-            }
-        });
-
-
         final Button enterAmount;
-        enterAmount = (Button)findViewById(R.id.enterAmount);
+        enterAmount = (Button) findViewById(R.id.enterAmount);
         enterAmount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Text to speech on button press
                 tts = new TextToSpeech(OcrCaptureActivity.this, new TextToSpeech.OnInitListener() {
                     //Getting text from the button and storing it in s
-                    String s=enterAmount.getText().toString();
+                    String s = enterAmount.getText().toString();
+
                     @Override
                     public void onInit(int status) {
                         //Instead of using the text in the button we are using our own message
@@ -134,7 +120,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
 
         // Set good defaults for capturing text.
         boolean autoFocus = true;
@@ -152,6 +137,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         gestureDetector = new GestureDetector(this, new CaptureGestureListener());
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
+
         // Set up the Text To Speech engine.
         TextToSpeech.OnInitListener listener =
                 new TextToSpeech.OnInitListener() {
@@ -166,6 +152,15 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                     }
                 };
         tts = new TextToSpeech(this.getApplicationContext(), listener);
+
+        ImageButton button = (ImageButton) findViewById(R.id.captureBtn);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent i = new Intent(OcrCaptureActivity.this, CashDisplay.class);
+
+                startActivity(i);
+            }
+        });
 
     }
 
@@ -214,7 +209,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * Creates and starts the camera.  Note that this uses a higher resolution in comparison
      * to other detection examples to enable the ocr detector to detect small text samples
      * at long distances.
-     *
+     * <p>
      * Suppressing InlinedApi since there is a check that the minimum version is met before using
      * the constant.
      */
@@ -256,12 +251,12 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         // to other detection examples to enable the text recognizer to detect small pieces of text.
         mCameraSource =
                 new CameraSource.Builder(getApplicationContext(), textRecognizer)
-                .setFacing(CameraSource.CAMERA_FACING_BACK)
-                .setRequestedPreviewSize(1280, 1024)
-                .setRequestedFps(2.0f)
-                .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
-                .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null)
-                .build();
+                        .setFacing(CameraSource.CAMERA_FACING_BACK)
+                        .setRequestedPreviewSize(1280, 1024)
+                        .setRequestedFps(2.0f)
+                        .setFlashMode(useFlash ? Camera.Parameters.FLASH_MODE_TORCH : null)
+                        .setFocusMode(autoFocus ? Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE : null)
+                        .build();
     }
 
     /**
@@ -325,7 +320,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Camera permission granted - initialize the camera source");
             // we have permission, so create the camerasource
-            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus,false);
+            boolean autoFocus = getIntent().getBooleanExtra(AutoFocus, false);
             boolean useFlash = getIntent().getBooleanExtra(UseFlash, false);
             createCameraSource(autoFocus, useFlash);
             return;
@@ -380,7 +375,6 @@ public final class OcrCaptureActivity extends AppCompatActivity {
      * @param rawY - the raw position of the tap.
      * @return true if the tap was on a TextBlock
      */
-
     private boolean onTap(float rawX, float rawY) {
         OcrGraphic graphic = mGraphicOverlay.getGraphicAtLocation(rawX, rawY);
         TextBlock text = null;
@@ -390,28 +384,29 @@ public final class OcrCaptureActivity extends AppCompatActivity {
                 /**
                 Log.d(TAG, "text data is being spoken! " + text.getValue());
                 // Speak the string.
-                tts.speak(text.getValue(), TextToSpeech.QUEUE_ADD, null, "DEFAULT");
-                 **/
+                tts.speak(text.getValue(), TextToSpeech.QUEUE_ADD, null, "DEFAULT");**/
                 String message = text.getValue();
 
-                String[] parts = message.split("\\.");
+                float total =Float.parseFloat(message);
+
+                /*String[] parts = message.split("\\.");
                 String euroStr = parts[0];
                 String centStr = parts[1];
 
-                Intent intent  = new Intent(this, CashDisplay.class);
+
                 int euro = Integer.parseInt(euroStr);
                 int cent = Integer.parseInt(centStr);
                 intent.putExtra("euromsg", euro);
-                intent.putExtra("centmsg", cent);
-                startActivity(intent);
+                intent.putExtra("centmsg", cent);*/
 
-            }
-            else {
+                Intent intent = new Intent(this, CashDisplay.class);
+                intent.putExtra("totalmsg", total);
+                startActivity(intent);
+            } else {
                 Log.d(TAG, "text data is null");
             }
-        }
-        else {
-            Log.d(TAG,"no text detected");
+        } else {
+            Log.d(TAG, "no text detected");
         }
         return text != null;
     }
